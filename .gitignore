@@ -13,3 +13,6 @@ node_modules/
 # Playwright / test scratch
 test-results/
 .playwright/
+
+# Sadie's reference photos for the Soul ID character. NEVER commit these.
+private/

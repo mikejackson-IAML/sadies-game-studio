@@ -9,6 +9,6 @@
   "_comments": {
     "hat": "none | cap | crown | wizard | bow",
     "companion.animal": "none | cat | dog | fox | bunny | dragon | bird",
-    "_": "Set during her onboarding. She is the playable character in every game."
+    "_": "Set during her onboarding. She is the playable character in every game. Per-world outfits are added automatically on top of this."
   }
 }

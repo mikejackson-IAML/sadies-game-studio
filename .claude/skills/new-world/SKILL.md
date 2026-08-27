@@ -44,18 +44,37 @@ World Card, so the new one is recognisably the same place.
 
 ---
 
-## Step 1 — Dream it
+## Step 1 — Pick a style
 
-**The first question is always about what she'll DO there**, because that shapes
-how the world gets built — a collecting world needs paths and hiding spots, a
-jumping world needs height:
+This comes first, and it's the fun bit. Call `list_styles` and read the menu out
+**a few at a time**, with the emoji, like reading a menu at a restaurant. She can:
+
+- **pick one** ("Candy Kingdom!")
+- **mix two** ("candy AND underwater!") — pass both ids
+- **skip it** and just describe her own look
+- **pick one of her own worlds**, so the new one matches it
+
+Every world she makes joins this menu automatically, so her collection becomes
+her own palette over time.
+
+Once she's picked, get excited about it, then say something like:
+*"Perfect. Now tell me about YOUR candy kingdom — because it's not the same as
+anybody else's."*
+
+## Step 2 — The conversation
+
+Now the two of you actually build the place. **One question at a time.** React
+to what she says before asking the next thing — this is a chat, not a form.
+
+Start with what she'll DO there, because it changes how the world gets built —
+a collecting world needs paths and hiding spots, a jumping world needs height:
 
 1. **"What will you DO in this world?"** — explore and collect? get lost in a
    maze? jump and climb? build stuff? (This becomes `gameType`.)
 
 Then, one at a time:
 
-2. **"What IS this place?"**
+2. **"So what IS this place?"**
 3. **"Who lives here?"**
 4. **"Is it daytime or night-time?"**
 5. **"What's the weather like? What does it FEEL like there?"**
@@ -64,23 +83,8 @@ Then, one at a time:
 
 Short answers are fine — one playful follow-up, then move on. If she's on a roll
 and tells you everything at once, skip ahead. Never make her repeat herself.
-
----
-
-## Step 2 — Pick a style
-
-Call `list_styles` and show her the menu — **a few at a time**, with the emoji,
-like reading out a menu at a restaurant. She can:
-
-- **pick one** ("Candy Kingdom!")
-- **mix two** ("candy AND underwater!") — pass both ids
-- **skip it** and just describe her own look
-- **pick one of her own worlds**, so the new one matches it
-
-Every world she ships joins this menu automatically, so her collection becomes
-her own palette over time.
-
----
+Build on the style she picked: in a Candy Kingdom, ask whether the river is
+chocolate or fizzy pop.
 
 ## Step 3 — See it
 

@@ -16,6 +16,9 @@
 ## My studio is called
 (we haven't picked a name yet!)
 
+## What I call my helper
+(I get to name Claude! We'll pick a name together.)
+
 ## My character
 (we'll design her together! — clothes colour, a hat, and maybe a little
 animal friend who follows me everywhere)

@@ -144,7 +144,7 @@ const TOOLS = [
 ];
 
 const server = new Server(
-  { name: "her-game-studio-worlds", version: "2.0.0" },
+  { name: "sadies-game-studio-worlds", version: "2.0.0" },
   { capabilities: { tools: {} } },
 );
 
@@ -206,4 +206,4 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
-adminLog("her-game-studio MCP server ready");
+adminLog("sadies-game-studio MCP server ready");

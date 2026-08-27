@@ -257,3 +257,14 @@ html, body {
   color: var(--paper);
 }
 .mute-btn.muted { background: #b9b6cc; }
+
+/* Her character, drawn in this world's style, on the loading screen. */
+.character-art {
+  max-width: min(210px, 42vw);
+  max-height: 34vh;
+  border: 5px solid var(--ink);
+  border-radius: 22px;
+  background: var(--paper);
+  box-shadow: 0 8px 0 rgba(35, 33, 74, 0.22);
+  object-fit: cover;
+}

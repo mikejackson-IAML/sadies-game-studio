@@ -22,7 +22,7 @@ import {
   extractAssets, downloadTo, expansionSupported, worldIdOf,
   uploadImage, startMultiImageGeneration, AZIMUTH,
 } from "./worldlabs.js";
-import { imagesAvailable, makeConceptImage, heroPrompt, directionPrompt } from "./images.js";
+import { imagesAvailable, makeConceptImage, heroPrompt, directionPrompt, characterPrompt } from "./images.js";
 import {
   styleMenu, mixStyles, newDraft, readDraft, writeDraft, draftDir,
   assemblePrompt, saveWorldCard, storyReadback, promoteDraft, DIRECTIONS,
@@ -146,7 +146,7 @@ export async function designWorld(args) {
   });
 
   let imageNote;
-  if (!imagesAvailable()) {
+  if (!imagesAvailable(config)) {
     imageNote =
       "NO CONCEPT IMAGE was drawn — the drawing key isn't set up. That's fine: tell her " +
       "you'll picture it in your head together, and carry straight on to the compass questions. " +
@@ -203,7 +203,7 @@ export async function reviseHero({ draftId, change }) {
         `Then move on to the compass questions and preview_world.`,
     );
   }
-  if (!imagesAvailable()) {
+  if (!imagesAvailable(config)) {
     return kidText("No drawing key is set up, so there's no picture to redraw. Carry on to preview_world.");
   }
 
@@ -254,7 +254,7 @@ export async function previewWorld({ draftId, directions }) {
   }
 
   const made = [];
-  if (imagesAvailable()) {
+  if (imagesAvailable(config)) {
     const heroFile = join(draftDir(draftId), "hero.jpg");
     const reference = draft.images.hero && existsSync(heroFile) ? [heroFile] : [];
     for (const direction of DIRECTIONS) {
@@ -437,6 +437,29 @@ export async function makeWorld(args) {
     if (draft) promoteDraft(draft.draftId, id);
 
     const style = draft ? mixStyles(draft.styleIds) : null;
+
+    // Her character, restyled for this world. One image, never fatal: a world
+    // she can play beats a picture she can look at.
+    let characterArt = null;
+    if (config.characterReferenceId && imagesAvailable(config)) {
+      try {
+        let avatar = {};
+        try {
+          avatar = JSON.parse(readFileSync(join(paths.root, "config", "avatar.json"), "utf8"));
+        } catch {
+          avatar = {};
+        }
+        await makeConceptImage({
+          prompt: characterPrompt({ style, outfit: null, avatar }),
+          outPath: join(dir, "character.jpg"),
+          config,
+        });
+        characterArt = "character.jpg";
+      } catch (err) {
+        const e = err instanceof StudioError ? err : new StudioError("art failed", String(err), "character_art");
+        adminLog(`character art failed (non-fatal) [${e.code}]: ${e.adminDetail}`);
+      }
+    }
     const record = {
       id,
       name: displayName,
@@ -453,6 +476,7 @@ export async function makeWorld(args) {
         thumbnail: thumbFile,
         hero: draft?.images?.hero ? "hero.jpg" : null,
         worldCard: draft ? "world-card.md" : null,
+        characterArt,
       },
       styleIds: draft?.styleIds ?? [],
       mood: style?.mood || "bright",
@@ -564,4 +588,4 @@ export function worldsLeftToday() {
   );
 }
 
-void readFileSync;
+

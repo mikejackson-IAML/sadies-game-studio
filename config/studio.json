@@ -9,6 +9,7 @@
   "imageModel": "gemini-3.1-flash-image",
   "maxHeroRevisions": 2,
   "backupPath": "",
+  "assistantName": "",
   "_comments": {
     "studioName": "Set during her first-run onboarding. Shown as the arcade title.",
     "dailyWorldLimit": "Hard cap on Marble world generations per day. Enforced in mcp/lib/limit.js, not just instructions.",
@@ -19,6 +20,7 @@
     "imageProvider": "Which concept-image API to use. Only 'gemini' is implemented; the adapter in mcp/lib/images.js is where a new one would go.",
     "imageModel": "Image model id. gemini-3.1-flash-image is the current one; gemini-2.5-flash-image also works.",
     "maxHeroRevisions": "How many times she can redraw the hero concept image before it is locked in. Keeps the image bill bounded.",
-    "backupPath": "Second location worlds/ is mirrored to by `npm run backup`. Any path: external drive, synced folder, rclone mount. Empty means manifest-only."
+    "backupPath": "Second location worlds/ is mirrored to by `npm run backup`. Any path: external drive, synced folder, rclone mount. Empty means manifest-only.",
+    "assistantName": "What Sadie decided to call Claude during onboarding. Claude answers to this name from then on."
   }
 }

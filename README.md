@@ -25,6 +25,7 @@ every error path before it reaches a log line.
 | --- | --- | --- |
 | `WORLDLABS_API_KEY` | **Yes** — no worlds without it | <https://platform.worldlabs.ai/> |
 | `GEMINI_API_KEY` | Optional — concept images | <https://aistudio.google.com/apikey> |
+| `HIGGSFIELD_API_KEY` + `HIGGSFIELD_SECRET` | Optional — her character art | Higgsfield platform. **Both** required. |
 
 > **Billing gotcha:** World Labs API Platform credits are *separate* from the
 > marble.worldlabs.ai web-app subscription. Credits in the web app do not fund
@@ -46,9 +47,12 @@ cp .env.example .env      # then paste the real keys
 ### 2. Privacy word list — do this before she ships anything
 
 ```bash
-cp config/privacy.example.json config/privacy.local.json
-# fill in her last name, school, city, street
+npm run privacy:setup
 ```
+
+Interactive, and deliberately so: these words are her real last name, school and
+town, and they should be typed into your own terminal rather than pasted into a
+chat window or a commit message.
 
 `config/privacy.local.json` is **gitignored** — it holds her real details and
 must never be committed. `npm run ship` scans everything being deployed against
@@ -58,12 +62,47 @@ EXIF from every cover image (a photo of her drawing can carry GPS).
 Without this file, text scanning is off and ship says so. Image metadata is
 still checked and stripped either way.
 
+### 2b. Her character art (optional — Higgsfield Soul ID)
+
+```bash
+# 1. put 1-5 clear photos of her face in private/   (gitignored)
+# 2.
+npm run character:setup
+# 3. verify
+npm run smoke:higgsfield            # auth only, free
+npm run smoke:higgsfield -- --draw  # generates one image, costs credits
+```
+
+This creates a Higgsfield character reference and stores **only the returned
+id** in `config/studio.json`. Her photos are never committed, never deployed,
+and never sent to Marble. It also flips `imageProvider` to `higgsfield`.
+
+Once set up, every new world gets a `character.jpg` — her, drawn in that world's
+style — shown on the game's loading screen and carried into the arcade.
+
+**Three things to know before you turn this on:**
+
+1. **`platform.higgsfield.ai` was blocked by egress policy** in the environment
+   this was built in, so **the Higgsfield path has never run against the live
+   API.** The request shapes are pinned by tests against a mock, but expect to
+   fix something on the first real run. `npm run smoke:higgsfield` is the place
+   to find out.
+2. **The documented `custom-references` endpoint takes image *URLs*.** The client
+   tries inline base64 first so nothing has to be published. If the API rejects
+   that, it stops and tells you — it will not publish her photos somewhere to
+   manufacture a URL. Hosting them, even briefly, is your decision.
+3. **Character art is a likeness of a real child on a public page.** The prompt
+   asks for flat illustrated cartoon art, explicitly not photorealistic, which
+   takes the edge off — but the arcade is public and indexable. Set
+   `requireShipApproval: true` if you want to eyeball every game before it goes
+   live.
+
 ### 3. Turn on GitHub Pages
 
 Push the repo, then **Settings → Pages → Source: `Deploy from a branch`**,
 branch `main`, folder **`/docs`**.
 
-Her arcade lands at `https://<username>.github.io/her-game-studio/`, each game at
+Her arcade lands at `https://<username>.github.io/sadies-game-studio/`, each game at
 `.../games/<slug>/`. `.nojekyll` is already there.
 
 > The repo must be **public** for free GitHub Pages. Nothing sensitive is in it.
@@ -126,9 +165,14 @@ All in `config/studio.json`, live on the next tool call, no restart:
 | `splatQuality` | `500k` | `100k` / `500k` / `full_res`. Affects file size and phone performance. |
 | `backupPath` | `""` | Second location for `npm run backup`. |
 | `studioName` | `""` | Set during her onboarding; titles the arcade. |
+| `assistantName` | `""` | What Sadie decides to call Claude during onboarding. Claude answers to it from then on. |
+| `imageProvider` | `gemini` | `gemini` (tested) or `higgsfield` (untested — see 2b). |
+| `characterReferenceId` | unset | Written by `npm run character:setup`. An id only, never a photo. |
 
 Her character lives in `config/avatar.json` (colours, hat, companion) and is set
-during onboarding. The style menu is `config/styles.json` — add or edit recipes
+during onboarding. Each world style adds a small costume on top automatically —
+snorkel and flippers in the reef, a bubble helmet in space, scarf and bobble hat
+in the snow — so she belongs in the place she built. The style menu is `config/styles.json` — add or edit recipes
 freely; her own worlds join the menu automatically.
 
 ---
@@ -251,7 +295,10 @@ npm run ship -- --game explore --title "Star Hunt"
 npm run save           # what "save my game" runs
 npm run backup         # mirror worlds/ + verify checksums
 npm run lfs:setup      # one-time Git LFS setup
-npm run smoke          # verify the API keys end to end
+npm run smoke          # verify the World Labs key end to end
+npm run smoke:higgsfield   # verify the Higgsfield key end to end
+npm run privacy:setup  # build the privacy word list, interactively
+npm run character:setup    # create her Soul ID from photos in private/
 npm run audio          # regenerate the sound library
 npm run world:placeholder  # regenerate the practice world
 ```

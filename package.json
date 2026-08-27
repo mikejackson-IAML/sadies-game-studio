@@ -1,5 +1,5 @@
 {
-  "name": "her-game-studio",
+  "name": "sadies-game-studio",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -17,7 +17,10 @@
     "audio": "node scripts/make-audio.mjs",
     "privacy": "node scripts/privacy-check.mjs",
     "backup": "node scripts/backup-worlds.mjs",
-    "lfs:setup": "node scripts/setup-lfs.mjs"
+    "lfs:setup": "node scripts/setup-lfs.mjs",
+    "privacy:setup": "node scripts/privacy-setup.mjs",
+    "character:setup": "node scripts/character-setup.mjs",
+    "smoke:higgsfield": "node scripts/smoke-higgsfield.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0"

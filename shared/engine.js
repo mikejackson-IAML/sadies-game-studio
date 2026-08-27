@@ -13,7 +13,7 @@
  */
 import * as THREE from "three";
 import { SparkRenderer, SplatMesh } from "@sparkjsdev/spark";
-import { buildAvatar, buildCompanion, loadAvatarConfig } from "./avatar.js";
+import { buildAvatar, buildCompanion, loadAvatarConfig, applyWorldOutfit } from "./avatar.js";
 import { GameAudio } from "./audio.js";
 
 const EYE_HEIGHT = 1.6;
@@ -85,6 +85,12 @@ export class Studio {
     this._addCharacter();
     this._updateCamera();
 
+    // Only ask for character art when the world actually has some — a
+    // speculative fetch would 404 in the console on every other world.
+    if (this.config.characterArt) {
+      this.ui.setCharacterArt(`../../worlds/${this.config.worldId}/${this.config.characterArt}`);
+    }
+
     this.audio = new GameAudio();
     const audioReady = this.audio.load(this.config.mood || "bright");
 
@@ -98,7 +104,7 @@ export class Studio {
     window.__studioDebug = () => ({
       pos: { ...this.player.position }, grounded: this.player.grounded,
       solidCount: this.solids.length, hasAvatar: !!this.avatar,
-      hasCompanion: !!this.companion, muted: this.audio.muted,
+      hasCompanion: !!this.companion, outfit: this.outfit, muted: this.audio.muted,
       audioReady: this.audio.ready, mood: this.config.mood,
     });
 
@@ -108,6 +114,8 @@ export class Studio {
 
   _addCharacter() {
     this.avatar = buildAvatar(this.avatarConfig);
+    // A small costume change so she belongs in the world she built.
+    this.outfit = applyWorldOutfit(this.avatar, this.config.styleId, this.config.mood);
     this.scene.add(this.avatar);
 
     const { animal, color } = this.avatarConfig.companion || {};
@@ -409,6 +417,8 @@ async function loadGameConfig() {
     worldName: "Practice World",
     studioName: "",
     mood: "bright",
+    styleId: "",
+    characterArt: null,
   };
   try {
     const response = await fetch("./game-config.json", { cache: "no-store" });
@@ -481,6 +491,10 @@ function buildUI(title, howTo, studioName) {
   bar.appendChild(barFill);
   loading.appendChild(bar);
   loading.appendChild(el("p", null, "This takes a few seconds. It's worth it!"));
+  const characterArt = el("img", "character-art");
+  characterArt.alt = "";
+  characterArt.hidden = true;
+  loading.appendChild(characterArt);
   root.appendChild(loading);
 
   const win = el("div", "overlay win");
@@ -500,6 +514,12 @@ function buildUI(title, howTo, studioName) {
     root, canvasHolder, goal, score, stick, stickNub, jumpBtn, muteBtn,
     setLoadProgress(fraction) {
       barFill.style.width = `${Math.round(Math.max(0, Math.min(1, fraction)) * 100)}%`;
+    },
+    /** Shows her character in this world's style, if that art exists. */
+    setCharacterArt(url) {
+      characterArt.onload = () => { characterArt.hidden = false; };
+      characterArt.onerror = () => { characterArt.hidden = true; };
+      characterArt.src = url;
     },
     setMuted(muted) {
       muteBtn.textContent = muted ? "🔇" : "🔊";

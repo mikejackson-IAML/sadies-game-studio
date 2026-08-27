@@ -3,5 +3,7 @@
   "worldFile": "world.ply",
   "worldName": "Practice World",
   "studioName": "",
-  "mood": "bright"
+  "mood": "bright",
+  "styleId": "",
+  "characterArt": null
 }

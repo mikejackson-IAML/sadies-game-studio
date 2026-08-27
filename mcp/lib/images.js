@@ -36,7 +36,34 @@ export function getImageKey() {
   return null;
 }
 
-export const imagesAvailable = () => Boolean(getImageKey());
+/**
+ * Whether concept images can be drawn at all. Depends on the configured
+ * provider, since each has its own credentials.
+ */
+export function imagesAvailable(config = {}) {
+  if (config.imageProvider === "higgsfield") {
+    return Boolean(process.env.HIGGSFIELD_API_KEY && process.env.HIGGSFIELD_SECRET);
+  }
+  return Boolean(getImageKey());
+}
+
+/**
+ * Character art prompt: the same girl, restyled for the world she is standing
+ * in. Deliberately illustrated rather than photorealistic — it suits a kid's
+ * game, and it keeps a real child's face off a public page as a photograph.
+ */
+export function characterPrompt({ style, outfit, avatar }) {
+  const bits = [
+    "Full-body children's storybook illustration of the same young girl character,",
+    "standing happily, friendly smile, facing the viewer.",
+    avatar?.bodyColor ? `She is wearing ${avatar.bodyColor} clothes.` : "",
+    outfit ? `She is wearing ${outfit} suited to this place.` : "",
+    style ? `The setting around her is ${style.name}: ${style.palette.join(", ")}, ${style.lighting}.` : "",
+    "Flat illustrated cartoon style with soft rounded shapes and clean outlines.",
+    "NOT photorealistic. Plain simple background. No text, no words, no watermark.",
+  ];
+  return bits.filter(Boolean).join(" ");
+}
 
 /** Scrubs both API keys out of anything headed for a log. */
 function scrub(text) {
@@ -123,7 +150,36 @@ async function generateGemini({ prompt, referenceImages = [], model }) {
   };
 }
 
-const PROVIDERS = { gemini: generateGemini };
+/**
+ * Higgsfield Soul, used when a character reference ("Soul ID") is configured.
+ * Its consistency comes from that stored reference rather than from reference
+ * images passed per call, so `referenceImages` is unused here.
+ */
+async function generateHiggsfield({ prompt, config }) {
+  const { generateSoulImage, waitForSoulImage } = await import("./higgsfield.js");
+  const jobSetId = await generateSoulImage({
+    prompt,
+    characterReferenceId: config.characterReferenceId || null,
+    quality: config.higgsfieldQuality || "1080p",
+    widthAndHeight: config.higgsfieldSize || "1152x2048",
+  });
+  const url = await waitForSoulImage(jobSetId);
+
+  const response = await fetch(url, { signal: AbortSignal.timeout(5 * 60_000) });
+  if (!response.ok) {
+    throw new StudioError(
+      "The drawing finished but I couldn't bring it home. Let's try again!",
+      `failed to download Higgsfield result: HTTP ${response.status}`,
+      "image_download",
+    );
+  }
+  return {
+    buffer: Buffer.from(await response.arrayBuffer()),
+    mimeType: response.headers.get("content-type") || "image/jpeg",
+  };
+}
+
+const PROVIDERS = { gemini: generateGemini, higgsfield: generateHiggsfield };
 
 /**
  * Generates an image and writes it to disk.
@@ -140,6 +196,7 @@ export async function makeConceptImage({ prompt, referenceFiles = [], outPath, c
     prompt,
     referenceImages,
     model: config.imageModel || "gemini-3.1-flash-image",
+    config,
   });
 
   mkdirSync(join(outPath, ".."), { recursive: true });

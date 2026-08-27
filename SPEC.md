@@ -79,14 +79,18 @@ that session but is not durable until something pushes. Logged to
 
 Five steps, driven by the `new-world` skill, one question at a time.
 
-1. **Dream it** — first question is always *what will you DO here*, because
+**Order note:** she picks a style **first** — it is the fastest, most fun way in
+— and the conversation follows from it. Steps below are numbered in the order the
+skill runs them.
+
+1. **Pick a style** — `config/styles.json` holds 10 recipes (palette, lighting,
+   materials, descriptors, mood). `mixStyles()` blends up to two. Her own worlds
+   appear as `world:<id>` and resolve to a recipe from their stored World Card.
+2. **The conversation** — first question is always *what will you DO here*, because
    `gameType` selects a spatial recipe (`GAME_SHAPE` in `mcp/lib/worldcard.js`):
    explore → paths and hiding spots; maze → corridors; platformer → verticality;
    sandbox → a flat open middle. Then place, inhabitants, time, weather, secret,
    sounds.
-2. **Pick a style** — `config/styles.json` holds 10 recipes (palette, lighting,
-   materials, descriptors, mood). `mixStyles()` blends up to two. Her own worlds
-   appear as `world:<id>` and resolve to a recipe from their stored World Card.
 3. **See it** — one hero image locks the style.
 4. **Look around** — the compass game; four answers map to Marble azimuths.
 5. **The World Card** — `world-card.md` plus `storyReadback()` for her final yes.
@@ -141,7 +145,7 @@ expands automatically within one generation. So:
 
 ---
 
-## 6. Concept images
+## 6. Concept images and character art
 
 `mcp/lib/images.js`, behind a provider adapter (`PROVIDERS`). Only `gemini` is
 implemented — it was the sole image API reachable from the build environment.
@@ -161,6 +165,36 @@ falls back to the text prompt. Nothing errors at her.
 To add a provider: implement one function with the `generateGemini` signature,
 register it in `PROVIDERS`, set `config.imageProvider`.
 
+### Higgsfield (character art) — UNTESTED AGAINST THE LIVE API
+
+`mcp/lib/higgsfield.js`. Used when `imageProvider` is `higgsfield`, which
+`npm run character:setup` sets.
+
+- Base `https://platform.higgsfield.ai`; headers `hf-api-key` **and** `hf-secret`.
+- `POST /v1/custom-references` — `{name, input_images:[{type,...}]}` → Soul ID.
+- `POST /v1/text2image/soul` — payload nested under `params`, with
+  `custom_reference_id` for consistency → job set id.
+- `GET /v1/job-sets/{id}` — `queued | in_progress | completed | failed | nsfw`.
+- `GET /v1/text2image/soul-styles`, `/v1/custom-references/list`.
+
+`platform.higgsfield.ai` was blocked by egress policy when this was written, so
+**none of it has run against the live service.** `mcp/test/higgsfield.test.js`
+pins endpoints, headers and payload shapes against a mock so the first real run
+fails for interesting reasons. `npm run smoke:higgsfield` is the live check.
+
+**Reference photos.** The documented endpoint takes public image URLs.
+`createCharacter` tries `type: "image_base64"` from local gitignored files first
+and, if rejected, throws `needs_image_urls` with an explanation rather than
+publishing her photos to manufacture a URL. That decision belongs to the parent,
+not to this code. Asserted by test.
+
+**Character art.** After a world is built, `makeWorld` draws one
+`worlds/<id>/character.jpg` via `characterPrompt()` — her, restyled for that
+world. The prompt asks for flat illustrated cartoon art and explicitly not
+photorealism. Failure is non-fatal and logged; a playable world beats a picture.
+The engine shows it on the loading overlay if present; `ship` carries it into
+`docs/` through the EXIF stripper.
+
 ---
 
 ## 7. Templates and the engine
@@ -177,6 +211,11 @@ register it in `PROVIDERS`, set `config.imageProvider`.
 - **Character**: `shared/avatar.js` builds her from primitives per
   `config/avatar.json` (colours, hat, companion). Origin at the feet, faces −Z.
   Limbs swing with speed; the companion trails and bobs.
+- **Per-world outfits**: `applyWorldOutfit()` adds a costume keyed on the
+  world's `styleId`, falling back to its `mood` so an unknown style still gets
+  something. Ten variants. Because the camera sits behind her, each is built to
+  read from **behind** — the snorkel ships with flippers for exactly this reason.
+  A mixed style uses whichever half is recognised first.
 - **Collision**: splats carry none, so gameplay collides with `Box3`s registered
   via `addSolid()`. Axis-by-axis resolution; falling below −18 respawns.
 - **Controls**: one code path for both input types — keyboard WASD/arrows +
@@ -187,7 +226,7 @@ register it in `PROVIDERS`, set `config.imageProvider`.
 - **Test hooks**: `window.__studioPos()` and `window.__studioDebug()`.
 
 `game-config.json` next to each game's `index.html` carries
-`{worldId, worldFile, worldName, mood, studioName}`. Templates and shipped games
+`{worldId, worldFile, worldName, mood, styleId, studioName}`. Templates and shipped games
 sit at the same relative depth (`../../shared`, `../../vendor`, `../../worlds`,
 `../../assets`, `../../config/avatar.json`), so nothing is rewritten at ship time.
 
@@ -279,6 +318,10 @@ GitHub's free LFS tier is 1 GB — at roughly one world a day, plan for a data p
 - `generation.test.js` — full simple-path flow against a mocked Marble:
   success, second-world refusal, tomorrow's-world, no-leak assertions,
   pre-flight refund, remix preserving the original.
+- `higgsfield.test.js` — Soul ID request shapes against a mock: both secrets as
+  headers never in the URL, base64-first reference creation, the refusal to
+  publish photos, `params`-nested Soul payloads, and kid-safe handling of
+  `nsfw`/`failed` job states.
 - `design.test.js` — full Design Studio against mocked Gemini + Marble: style
   menu, hero image, revision cap, partial compass persistence, four directional
   images conditioned on the hero, **azimuths `[0,90,180,270]`**, draft promotion,
@@ -304,7 +347,8 @@ movement assertion polls rather than timing a fixed window.
 | `mcp/lib/git.js` | Makes the limit survive a fresh container. |
 | `scripts/privacy-check.mjs` | Blocks publishing anything identifying. |
 | `config/studio.json` | Limit, timezone, model, approval flag, backup path. |
-| `config/privacy.local.json` | Gitignored. Her real details, never committed. |
+| `config/privacy.local.json` | Gitignored. Her real details, never committed. Built by `npm run privacy:setup`. |
+| `private/` | Gitignored. Her reference photos. Used once by `character:setup`, never committed or deployed. |
 | `logs/usage.json` | Source of truth for the limit. |
 | `worlds/worlds.json` | Registry: cards, styles, moods, asset URLs. |
 | `.gitattributes` | LFS tracking for world binaries. |
@@ -319,5 +363,9 @@ movement assertion polls rather than timing a fixed window.
 - Nothing she can see contains technical detail. Asserted by tests.
 - Templates are never edited in place; `ship` copies them into `games/`.
 - Nothing is ever deleted: not games, not worlds, not shipped arcade entries.
-- Both API keys come from the environment only and are scrubbed from every log
-  path by `redact()` / `scrub()`.
+- All API keys come from the environment only and are scrubbed from every log
+  path by `redact()` / `scrub()` / `scrubHiggsfield()`.
+- Her reference photos are never committed, never deployed, and never sent to
+  Marble. Code will not publish them to satisfy an API that wants URLs.
+- Sadie names Claude during onboarding (`config.assistantName`); Claude uses
+  that name from then on.

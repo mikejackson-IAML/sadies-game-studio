@@ -78,6 +78,8 @@ const registry = readJson(join(ROOT, "worlds", "worlds.json"), { worlds: [] });
 const worldRecord = registry.worlds.find((w) => w.id === worldId);
 const styles = readJson(join(ROOT, "config", "styles.json"), { styles: [] });
 const worldName = worldRecord?.name || (worldId === "placeholder" ? "Practice World" : worldId);
+const styleId = (worldRecord?.styleIds || []).join("+");
+const characterArt = existsSync(join(worldDir, "character.jpg")) ? "character.jpg" : null;
 const mood =
   worldRecord?.mood ||
   styles.styles.find((s) => s.id === worldRecord?.styleId)?.mood ||
@@ -103,6 +105,15 @@ cpSync(join(ROOT, "assets"), join(ROOT, "docs", "assets"), { recursive: true });
 mkdirSync(join(ROOT, "docs", "worlds", worldId), { recursive: true });
 cpSync(join(worldDir, worldFile), join(ROOT, "docs", "worlds", worldId, worldFile));
 
+// Her character art and the world's hero image travel with the world, stripped
+// of any metadata on the way out.
+for (const art of ["character.jpg", "hero.jpg"]) {
+  const src = join(worldDir, art);
+  if (existsSync(src)) {
+    writeFileSync(join(ROOT, "docs", "worlds", worldId, art), stripJpegMetadata(readFileSync(src)));
+  }
+}
+
 // Only the avatar goes public — never the whole config directory.
 mkdirSync(join(ROOT, "docs", "config"), { recursive: true });
 const avatar = readJson(join(ROOT, "config", "avatar.json"), {});
@@ -111,7 +122,7 @@ writeFileSync(join(ROOT, "docs", "config", "avatar.json"), `${JSON.stringify(ava
 
 writeFileSync(
   join(outDir, "game-config.json"),
-  `${JSON.stringify({ worldId, worldFile, worldName, mood, studioName: config.studioName || "" }, null, 2)}\n`,
+  `${JSON.stringify({ worldId, worldFile, worldName, mood, styleId, characterArt, studioName: config.studioName || "" }, null, 2)}\n`,
 );
 
 // ----------------------------------------------------------------- cover image
@@ -193,7 +204,7 @@ try {
   const branch = git(["rev-parse", "--abbrev-ref", "HEAD"]).trim();
   git(["push", "origin", branch]);
 
-  let url = `https://<your-github-username>.github.io/her-game-studio/games/${slug}/`;
+  let url = `https://<your-github-username>.github.io/sadies-game-studio/games/${slug}/`;
   try {
     const remote = git(["remote", "get-url", "origin"]).trim();
     const match = remote.match(/github\.com[:/]([^/]+)\/([^/.]+)/);
