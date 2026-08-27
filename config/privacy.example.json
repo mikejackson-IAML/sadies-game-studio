@@ -1,0 +1,9 @@
+{
+  "_comment": "Copy to config/privacy.local.json (gitignored) and list any strings that must NEVER appear in anything deployed. The ship pipeline hard-fails if it finds one. Case-insensitive, whole-word matching.",
+  "forbidden": [
+    "PutHerLastNameHere",
+    "PutHerSchoolNameHere",
+    "PutYourCityHere",
+    "PutYourStreetHere"
+  ]
+}

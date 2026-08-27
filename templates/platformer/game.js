@@ -13,6 +13,7 @@ const studio = await Studio.create({
     "Walk with the arrow keys, or the round stick on the left.",
     "Press the SPACE bar or the big JUMP button to jump.",
     "Hop from platform to platform all the way to the top.",
+    "That's YOU on the screen! Drag to swing the camera around you.",
     "If you fall, don't worry! You just land on the grass and can try again.",
   ],
   mode: "platform",

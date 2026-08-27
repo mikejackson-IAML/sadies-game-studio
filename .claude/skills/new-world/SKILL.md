@@ -1,127 +1,180 @@
 ---
 name: new-world
-description: Run the world interview before making any Marble world. Use this ANY time she wants a new world, a different world, or wants to add to a world she already has — including a one-line request like "make me a candy forest". Never call make_world without running this first.
+description: The World Design Studio. Use this ANY time she wants a new world, a different world, or wants to add to a world she already has — including a one-line request like "make me a candy forest". Never call make_world without running this first.
 ---
 
-# The World Interview 🌍✨
+# The World Design Studio 🌍✨
 
 A world is a big deal. She only gets **one a day**, and a world built from one
 sentence is never as good as a world built from her imagination.
 
 So: **never call `make_world` straight away.** Even if she says something perfect
-like "make me a candy forest world" — especially then! Get excited, then say
-something like:
+like "make me a candy forest world" — especially then! Get excited, then say:
 
-> "Ooh, a candy forest! Let me ask you a few things so we build the BEST one. 🍭"
+> "Ooh, a candy forest! Come into the design studio with me — let's build the
+> BEST one. 🍭"
+
+This takes about ten minutes and it's the fun part. **Only `make_world` costs
+anything.** Designing, styling, drawing and previewing are all free, so never
+rush her.
+
+**One question at a time. Always.** React to what she says before asking the
+next thing.
+
+Every single question has a **"surprise me!"** escape hatch. If she says that —
+or shrugs, or says "I don't know" — fill the answer in yourself from
+`about-me.md` (her favourite animals, colours, the things she loves) and tell her
+what you picked in a fun way: *"Okay! I'm putting FOXES in it. 🦊"*
 
 ---
 
-## Step 1 — New world, or a bigger version of an old one?
+## Step 0 — New world, or a bigger version of an old one?
 
-If she already has worlds (check with `list_my_worlds`), ask which she wants:
+If she already has worlds (`list_my_worlds`), ask which she wants:
 
 > "Do you want a brand-new world, or should we make one of your worlds even
 > bigger?"
 
-If she picks bigger, ask which one, then run the interview **about the new part
-only** — "what are we adding?" — not the whole world again.
+If she picks bigger: ask which one, then run the design **about the new part
+only**. Pass `addToWorldId` to `design_world` — it starts from that world's
+World Card, so the new one is recognisably the same place.
 
-**Her old world never changes.** Making a bigger version creates a *new* world
-and keeps the original exactly as it is. Tell her that, so she isn't scared of
-losing it: *"Don't worry — your first one stays exactly how it is!"*
+**Her old world never changes.** Tell her that so she isn't scared:
+*"Don't worry — your first one stays exactly how it is!"*
 
 ---
 
-## Step 2 — The questions
+## Step 1 — Dream it
 
-**One question at a time.** Wait for her answer. React to it before asking the
-next one. Six questions, tops.
+**The first question is always about what she'll DO there**, because that shapes
+how the world gets built — a collecting world needs paths and hiding spots, a
+jumping world needs height:
 
-1. **"What is this place?"**
-2. **"Who lives here?"**
-3. **"What colours do you see everywhere?"**
+1. **"What will you DO in this world?"** — explore and collect? get lost in a
+   maze? jump and climb? build stuff? (This becomes `gameType`.)
+
+Then, one at a time:
+
+2. **"What IS this place?"**
+3. **"Who lives here?"**
 4. **"Is it daytime or night-time?"**
-5. **"What's the coolest secret hiding in it?"**
-6. **"If you closed your eyes here, what would you hear?"**
+5. **"What's the weather like? What does it FEEL like there?"**
+6. **"What's the coolest secret hiding in it?"**
+7. **"If you closed your eyes here, what would you hear?"**
 
-Rules for the interview:
-- If an answer is short, that's fine — ask one playful follow-up, then move on.
-- If she's on a roll and tells you everything at once, skip ahead. Don't make her
-  repeat herself.
-- If she says "I don't know", offer three ideas from `about-me.md` — her
-  favourite animals and colours belong here.
-- Never ask all six at once. Never make it feel like a form.
-- Keep it under two minutes. She wants to play.
+Short answers are fine — one playful follow-up, then move on. If she's on a roll
+and tells you everything at once, skip ahead. Never make her repeat herself.
 
 ---
 
-## Step 3 — Build the prompt quietly
+## Step 2 — Pick a style
 
-Now turn her answers into a rich Marble prompt. **Do this silently** — she never
-sees the prompt. It should be a few detailed sentences and cover:
+Call `list_styles` and show her the menu — **a few at a time**, with the emoji,
+like reading out a menu at a restaurant. She can:
 
-`[what the place is] + [what it's made of] + [the light and time of day] +
-[the weather and mood] + [how big it is] + [the special thing she invented]`
+- **pick one** ("Candy Kingdom!")
+- **mix two** ("candy AND underwater!") — pass both ids
+- **skip it** and just describe her own look
+- **pick one of her own worlds**, so the new one matches it
 
-What works in Marble:
-- Real materials and architecture: *mossy stone, curved glass, striped candy bark*
-- Light and weather: *golden late-afternoon light, soft mist, glowing lanterns*
-- Scale and layout: *a wide clearing ringed by tall trees, a narrow winding path*
-- Archetypes rather than named things: *"a cosy wizard's cottage"*, not a
-  character from a film
-
-What does not work — leave these out even if she says them:
-- Feelings on their own ("make it happy") — turn those into things you can see
-- Named characters or real people
-- Anything about the game rules; this is only the *place*
-
-Sounds don't become geometry, but her answer tells you the mood — a world with
-"birds singing and a waterfall" should have water and trees in it.
+Every world she ships joins this menu automatically, so her collection becomes
+her own palette over time.
 
 ---
 
-## Step 4 — Check with her, in one sentence
+## Step 3 — See it
 
-One playful sentence. Not the prompt. Something like:
+Call `design_world` with everything so far. It draws **one hero picture** of her
+world and saves her World Card.
 
-> "Okay! One candy forest at sunset, with a chocolate river, striped lollipop
-> trees, and a secret door in the biggest tree trunk. Ready? 🍭"
+Show her the picture. Ask: *"Does that look like your world?"*
 
-Wait for her yes.
+- **Yes** → carry on to the compass.
+- **Not quite** → call `revise_hero` with what she wants changed.
+
+She gets a small number of redraws (the tool tells you how many are left). When
+they run out, say something warm: *"Let's go with this one — and the real world
+always looks even better than the drawing!"*
+
+If there's no drawing key set up, the tool says so. That's completely fine —
+just say you'll picture it together and carry straight on. **Never show her an
+error about it.**
+
+*Optional:* if she has drawn her world on paper and photographed it, put the
+image in the repo and mention the path when you call `design_world` — it can
+seed the concept art.
 
 ---
 
-## Step 5 — Make it
+## Step 4 — Look around (the compass game)
 
-Call `make_world` with:
-- `description` — your full assembled prompt (not her one-liner)
-- `name` — a short name **in her words** ("Candy Forest")
-- `add_to_world` — only if she chose to make an existing world bigger
+This is her favourite part. Make it a game:
 
-While it builds (a few minutes), keep her company. Ask what game she wants to put
-it in, or what she'd name the secret door. Don't leave her staring at nothing.
+> "Okay — close your eyes. Pretend you're standing right in the middle of your
+> world. **What's in front of you?**"
+
+Then, one at a time, with a spin each time:
+
+- *"Now spin around! What's **behind** you?"*
+- *"Turn to your **left** — what's there?"*
+- *"And on your **right**?"*
+
+Pass the answers to `preview_world`. You can send them one at a time as she
+answers; it remembers. It draws all four views in the same style as her hero
+picture. **Show her all four.** This is what her world will look like when she's
+standing in it, turning around.
+
+---
+
+## Step 5 — The World Card
+
+`preview_world` finishes her World Card and gives you a story to read back.
+
+**Read it to her like a bedtime story**, in your own warm voice — not as a list.
+Something like:
+
+> "You're standing in a candy forest at sunset. In front of you, a chocolate
+> river. You turn right — lollipop trees. Behind you, a whole gummy bear village.
+> And on your left, a marshmallow hill. Somewhere out there, hidden, is a tiny
+> door in the biggest lollipop tree. 🍭"
+
+Then **one** playful question: *"Is that your world?"*
+
+- **Yes** → `make_world` with the draft id. This is the moment the day's world
+  gets spent.
+- **Not quite** → change it and run `preview_world` again. Still free.
+
+---
+
+## While it builds
+
+Marble takes a few minutes. **Don't leave her staring at nothing.** Ask what
+she'd name the secret door, or which game she wants to put it in, or what her
+character should wear in there.
 
 ---
 
 ## If she's out of worlds for today
 
-Don't stop! **Run the whole interview anyway.** Then `make_world` saves her
-finished idea into `tomorrows-world.md` automatically.
+**Do the whole design anyway — all five steps.** The pictures get drawn, the
+World Card gets written, everything is saved.
 
-Tell her like it's good news, because it is:
+Then `make_world` tells you it's saved for tomorrow. Say it like good news,
+because it is:
 
-> "This idea is SO good. I've written the whole thing down and locked it in a
-> treasure chest for tomorrow — the second you can make a world, this one's
-> ready to go. 🗝️"
+> "This world is SO good. The whole design and all the pictures are locked in a
+> treasure chest — the second you can make a world, this one's ready to go. 🗝️"
 
-Then offer something she can do right now: play a game, remix a template, or
-decorate her sandbox.
+Then offer something she can do right now: play a game, remix a template,
+decorate her sandbox, or ship a game to her arcade.
 
 ---
 
 ## Never
 
-- Never call `make_world` without doing the interview first.
+- Never call `make_world` without going through the design first.
 - Never show her the assembled prompt. It's backstage magic.
-- Never spend her world without a clear yes from her.
-- Never let her think a slow build means something is broken.
+- Never spend her world without a clear yes.
+- Never let a slow build look like something is broken.
+- Never let a drawing failure stop the design — the World Card matters more
+  than the pictures.

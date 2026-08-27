@@ -1,0 +1,116 @@
+{
+  "version": 1,
+  "_comment": "The Style Menu she picks from during world design. Each recipe seeds the concept images and the Marble prompt. Her own shipped worlds are added to this menu automatically at runtime.",
+  "styles": [
+    {
+      "id": "candy-kingdom",
+      "name": "Candy Kingdom",
+      "emoji": "🍭",
+      "blurb": "Everything is made of sweets!",
+      "palette": ["bubblegum pink", "mint green", "buttercream yellow", "glossy cherry red"],
+      "lighting": "bright cheerful afternoon light with soft pastel bounce",
+      "materials": "glossy hard candy, striped lollipop bark, marzipan stone, sugar-frosted surfaces",
+      "descriptors": ["whimsical", "oversized", "rounded shapes", "sugary sheen"],
+      "mood": "bright"
+    },
+    {
+      "id": "enchanted-forest",
+      "name": "Enchanted Forest",
+      "emoji": "🌳",
+      "blurb": "Old trees, glowing mushrooms, secret paths.",
+      "palette": ["deep moss green", "amber", "violet glow", "silver birch white"],
+      "lighting": "dappled golden shafts through a high canopy, glowing motes in the air",
+      "materials": "mossy bark, damp stone, luminous fungi, tangled roots",
+      "descriptors": ["ancient", "hushed", "winding paths", "magical"],
+      "mood": "mysterious"
+    },
+    {
+      "id": "underwater-reef",
+      "name": "Underwater Reef",
+      "emoji": "🐠",
+      "blurb": "A coral city under the waves.",
+      "palette": ["turquoise", "coral orange", "deep sapphire", "pearl white"],
+      "lighting": "rippling caustics from the surface above, soft blue depth haze",
+      "materials": "living coral, sea glass, smooth wet rock, drifting kelp",
+      "descriptors": ["floating", "swaying", "layered", "shafts of light"],
+      "mood": "watery"
+    },
+    {
+      "id": "snowy-village",
+      "name": "Snowy Village",
+      "emoji": "❄️",
+      "blurb": "Cosy cottages and deep soft snow.",
+      "palette": ["snow white", "warm lantern orange", "pine green", "dusk blue"],
+      "lighting": "blue twilight with warm window glow and lantern pools",
+      "materials": "packed snow, timber beams, frosted glass, cobblestone",
+      "descriptors": ["cosy", "quiet", "smoke from chimneys", "footprints in snow"],
+      "mood": "bright"
+    },
+    {
+      "id": "dino-jungle",
+      "name": "Dino Jungle",
+      "emoji": "🦕",
+      "blurb": "Giant ferns and even bigger footprints.",
+      "palette": ["jungle green", "volcanic black", "sulphur yellow", "muddy ochre"],
+      "lighting": "hot hazy sunlight filtering through enormous fronds",
+      "materials": "giant fern leaves, wet mud, cracked volcanic rock, hanging vines",
+      "descriptors": ["prehistoric", "enormous scale", "steamy", "overgrown"],
+      "mood": "mysterious"
+    },
+    {
+      "id": "fairy-garden",
+      "name": "Fairy Garden",
+      "emoji": "🧚",
+      "blurb": "Tiny doors and flowers taller than you.",
+      "palette": ["petal pink", "dew silver", "spring green", "lavender"],
+      "lighting": "soft early-morning light with dew sparkle and gentle mist",
+      "materials": "flower petals, spiderweb lace, acorn caps, smooth pebbles",
+      "descriptors": ["miniature world seen from ant height", "delicate", "dewy", "hidden doors"],
+      "mood": "bright"
+    },
+    {
+      "id": "outer-space",
+      "name": "Outer Space",
+      "emoji": "🚀",
+      "blurb": "A little moon base among the stars.",
+      "palette": ["deep space indigo", "chrome silver", "neon cyan", "mars rust"],
+      "lighting": "hard directional starlight with deep shadows and glowing panel strips",
+      "materials": "brushed metal panels, moon dust, thick glass domes, cable bundles",
+      "descriptors": ["weightless", "vast", "low gravity dust", "distant planets"],
+      "mood": "spacey"
+    },
+    {
+      "id": "rainbow-clouds",
+      "name": "Rainbow Cloud Castle",
+      "emoji": "🌈",
+      "blurb": "A castle floating on the clouds.",
+      "palette": ["cloud white", "sunrise peach", "sky blue", "rainbow prism"],
+      "lighting": "high bright sunlight above a cloud layer, rainbow refraction",
+      "materials": "fluffy cloud banks, pearly stone, gold trim, translucent glass",
+      "descriptors": ["floating islands", "airy", "endless sky", "soft edges"],
+      "mood": "bright"
+    },
+    {
+      "id": "spooky-friendly",
+      "name": "Friendly Spooky Town",
+      "emoji": "🎃",
+      "blurb": "Silly ghosts and pumpkin lanterns. Never scary!",
+      "palette": ["pumpkin orange", "moonlight silver", "plum purple", "candle gold"],
+      "lighting": "big friendly full moon with warm candle-lit windows",
+      "materials": "crooked timber, carved pumpkins, cobblestone, drifting mist",
+      "descriptors": ["playful", "wonky crooked buildings", "cosy not creepy", "warm lights everywhere"],
+      "mood": "spooky"
+    },
+    {
+      "id": "desert-oasis",
+      "name": "Desert Oasis",
+      "emoji": "🏜️",
+      "blurb": "Golden dunes with a secret pool of water.",
+      "palette": ["golden sand", "turquoise water", "terracotta", "sunset rose"],
+      "lighting": "low warm late-afternoon sun with long dune shadows",
+      "materials": "rippled sand, sun-bleached stone, palm fronds, still clear water",
+      "descriptors": ["wide open", "shimmering heat", "hidden green pocket", "carved rock"],
+      "mood": "bright"
+    }
+  ]
+}

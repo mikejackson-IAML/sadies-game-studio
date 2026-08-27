@@ -13,7 +13,11 @@
     "smoke": "node scripts/smoke-test.mjs",
     "test": "node --test mcp/test/*.test.js",
     "test:games": "node scripts/test-games.mjs",
-    "mcp": "node mcp/server.js"
+    "mcp": "node mcp/server.js",
+    "audio": "node scripts/make-audio.mjs",
+    "privacy": "node scripts/privacy-check.mjs",
+    "backup": "node scripts/backup-worlds.mjs",
+    "lfs:setup": "node scripts/setup-lfs.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0"

@@ -23,6 +23,7 @@ const studio = await Studio.create({
   ],
   mode: "walk",
   worldBounds: 24,
+  startPosition: [0, 0, 0],
 });
 
 const SAVE_KEY = `studio-sandbox:${studio.config.worldId}`;
@@ -96,6 +97,7 @@ placeBtn.addEventListener("click", () => {
   const yaw = studio.player.yaw;
   const spot = { x: p.x - Math.sin(yaw) * 3, z: p.z - Math.cos(yaw) * 3 };
   build(chosen, spot, Math.random() * Math.PI * 2);
+  studio.audio.play("place");
   save();
   studio.setScore(placed.length);
   studio.setGoal(`${placed.length} thing${placed.length === 1 ? "" : "s"} built!`);
@@ -110,6 +112,7 @@ undoBtn.addEventListener("click", () => {
   if (!last) return;
   studio.scene.remove(last.mesh);
   studio.solids.pop();
+  studio.audio.play("undo");
   save();
   studio.setScore(placed.length);
 });

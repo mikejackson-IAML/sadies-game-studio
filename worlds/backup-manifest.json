@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "updatedAtUtc": "2026-08-27T13:55:36.878Z",
+  "files": {
+    "placeholder/world.ply": {
+      "sha256": "b6a9df22b09135bbdec8dbf01e4a897f02ae9597a42b4abc4e1aafcf292b9981",
+      "bytes": 2467721
+    }
+  }
+}

@@ -1,7 +1,10 @@
-# Secrets — the World Labs API key lives here and must never be committed.
+# Secrets — API keys live here and must never be committed.
 .env
 .env.*
 !.env.example
+
+# Privacy word list: contains her real last name/school/city. Never commit.
+config/privacy.local.json
 
 node_modules/
 .DS_Store

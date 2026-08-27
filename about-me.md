@@ -5,6 +5,9 @@
   Claude: while this NEW-STUDIO line is still here, it's her first day.
   Run the welcome chat from CLAUDE.md, fill this in with her answers,
   and then delete this whole comment.
+
+  PRIVACY: first name only. Never write a last name, school, city, street
+  or age in this file — it can end up on the public arcade page.
 -->
 
 ## My name is
@@ -12,6 +15,10 @@
 
 ## My studio is called
 (we haven't picked a name yet!)
+
+## My character
+(we'll design her together! — clothes colour, a hat, and maybe a little
+animal friend who follows me everywhere)
 
 ## Animals I love
 I love animals! All of them! 🐾

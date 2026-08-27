@@ -13,6 +13,11 @@
 
 * { box-sizing: border-box; }
 
+/* The `hidden` attribute must beat any author display rule. Without this,
+   .overlay's display:flex keeps the loading and win screens painted over the
+   game forever. */
+[hidden] { display: none !important; }
+
 html, body {
   margin: 0;
   padding: 0;
@@ -237,3 +242,18 @@ html, body {
 .piece-btn.chosen { background: var(--mint); transform: translateY(-4px); }
 .place-btn { position: absolute; right: 22px; bottom: 152px; background: var(--mint); }
 .undo-btn { position: absolute; right: 22px; bottom: 92px; background: var(--paper); font-size: 16px; padding: 8px 16px; }
+
+/* ------------------------------------------------------------ mute button */
+.mute-btn {
+  position: absolute;
+  top: 82px;
+  right: 14px;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  padding: 0;
+  font-size: 26px;
+  background: var(--sky);
+  color: var(--paper);
+}
+.mute-btn.muted { background: #b9b6cc; }

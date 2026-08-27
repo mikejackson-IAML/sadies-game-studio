@@ -44,24 +44,24 @@ const GROUND_R = 26;
 const groundHeight = (x, z) =>
   Math.sin(x * 0.13) * 0.6 + Math.cos(z * 0.11) * 0.5 + Math.sin((x + z) * 0.07) * 0.35;
 
-for (let i = 0; i < 12000; i++) {
+for (let i = 0; i < 17000; i++) {
   const a = rand() * Math.PI * 2;
   const r = Math.sqrt(rand()) * GROUND_R;
   const x = Math.cos(a) * r;
   const z = Math.sin(a) * r;
   const y = groundHeight(x, z); // +Y is down, so this dips the ground
   const [cr, cg, cb] = jitterColor([0.28, 0.62, 0.26], 0.10);
-  splat(x, y, z, cr, cg, cb, 0.96, range(0.30, 0.55), 0.05, range(0.30, 0.55));
+  splat(x, y, z, cr, cg, cb, 0.96, range(0.15, 0.26), 0.04, range(0.15, 0.26));
 }
 
 // A sandy path looping through the meadow, so there is somewhere obvious to walk.
-for (let i = 0; i < 1800; i++) {
+for (let i = 0; i < 2400; i++) {
   const t = rand() * Math.PI * 2;
   const pr = 11 + Math.sin(t * 3) * 2.5;
   const x = Math.cos(t) * pr + range(-1.1, 1.1);
   const z = Math.sin(t) * pr + range(-1.1, 1.1);
   const [cr, cg, cb] = jitterColor([0.82, 0.72, 0.48], 0.06);
-  splat(x, groundHeight(x, z) - 0.04, z, cr, cg, cb, 0.97, range(0.28, 0.45), 0.04, range(0.28, 0.45));
+  splat(x, groundHeight(x, z) - 0.04, z, cr, cg, cb, 0.97, range(0.14, 0.24), 0.035, range(0.14, 0.24));
 }
 
 // ---------------------------------------------------------------- trees
@@ -78,10 +78,10 @@ function tree(cx, cz, scale, canopy) {
     const a = rand() * Math.PI * 2;
     const [cr, cg, cb] = jitterColor([0.36, 0.24, 0.15], 0.05);
     splat(cx + Math.cos(a) * rr, groundY - h, cz + Math.sin(a) * rr,
-      cr, cg, cb, 0.98, 0.10 * scale, 0.16 * scale, 0.10 * scale);
+      cr, cg, cb, 0.98, 0.065 * scale, 0.10 * scale, 0.065 * scale);
   }
   const top = groundY - trunkH - 1.1 * scale;
-  for (let i = 0; i < 720; i++) {
+  for (let i = 0; i < 950; i++) {
     // Cluster of three overlapping blobs makes a fluffier canopy than one sphere.
     const lobe = i % 3;
     const ox = (lobe === 1 ? 0.75 : lobe === 2 ? -0.7 : 0) * scale;
@@ -92,12 +92,12 @@ function tree(cx, cz, scale, canopy) {
     const s = Math.sqrt(1 - u * u) * Math.cbrt(rand());
     const [cr, cg, cb] = jitterColor(canopy, 0.09);
     splat(cx + ox + Math.cos(th) * s * rr, top + oy + u * rr * 0.85, cz + oz + Math.sin(th) * s * rr,
-      cr, cg, cb, 0.92, 0.17 * scale, 0.17 * scale, 0.17 * scale);
+      cr, cg, cb, 0.92, 0.105 * scale, 0.105 * scale, 0.105 * scale);
   }
 }
 for (let i = 0; i < 15; i++) {
   const a = (i / 15) * Math.PI * 2 + range(-0.18, 0.18);
-  const r = range(6, 22);
+  const r = range(9, 22);
   tree(Math.cos(a) * r, Math.sin(a) * r, range(0.85, 1.5),
     CANOPY_COLORS[Math.floor(rand() * CANOPY_COLORS.length)]);
 }
@@ -114,7 +114,7 @@ for (let m = 0; m < 12; m++) {
     const h = rand() * 0.85 * sc;
     const aa = rand() * Math.PI * 2, rr = 0.11 * sc;
     splat(cx + Math.cos(aa) * rr, gy - h, cz + Math.sin(aa) * rr,
-      0.95, 0.93, 0.86, 0.98, 0.09 * sc, 0.10 * sc, 0.09 * sc);
+      0.95, 0.93, 0.86, 0.98, 0.055 * sc, 0.065 * sc, 0.055 * sc);
   }
   for (let i = 0; i < 210; i++) {
     const aa = rand() * Math.PI * 2;
@@ -122,7 +122,7 @@ for (let m = 0; m < 12; m++) {
     const dome = -Math.sqrt(Math.max(0, 1 - (rr / (0.62 * sc)) ** 2)) * 0.3 * sc;
     const [cr, cg, cb] = jitterColor(cap, 0.07);
     splat(cx + Math.cos(aa) * rr, gy - 0.85 * sc + dome, cz + Math.sin(aa) * rr,
-      cr, cg, cb, 0.96, 0.11 * sc, 0.08 * sc, 0.11 * sc);
+      cr, cg, cb, 0.96, 0.07 * sc, 0.05 * sc, 0.07 * sc);
   }
 }
 
@@ -142,7 +142,7 @@ for (let b = 0; b < 14; b++) {
     const s = Math.sqrt(1 - u * u) * Math.cbrt(rand());
     const [cr, cg, cb] = jitterColor(col, 0.05);
     splat(cx + Math.cos(th) * s * sc, cy + u * sc * 1.15, cz + Math.sin(th) * s * sc,
-      cr, cg, cb, 0.94, 0.10 * sc, 0.11 * sc, 0.10 * sc);
+      cr, cg, cb, 0.94, 0.065 * sc, 0.07 * sc, 0.065 * sc);
   }
 }
 
@@ -152,7 +152,7 @@ for (let i = 0; i < 2200; i++) {
   const x = Math.cos(a) * r, z = Math.sin(a) * r;
   const col = BALLOON[Math.floor(rand() * BALLOON.length)];
   const [cr, cg, cb] = jitterColor(col, 0.12);
-  splat(x, groundHeight(x, z) - range(0.12, 0.4), z, cr, cg, cb, 0.9, 0.07, 0.07, 0.07);
+  splat(x, groundHeight(x, z) - range(0.12, 0.4), z, cr, cg, cb, 0.9, 0.045, 0.045, 0.045);
 }
 
 // ---------------------------------------------------------------- encode PLY

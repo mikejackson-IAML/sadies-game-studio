@@ -1,0 +1,18 @@
+{
+  "music": {
+    "bright": "music-bright.wav",
+    "mysterious": "music-mysterious.wav",
+    "watery": "music-watery.wav",
+    "spooky": "music-spooky.wav",
+    "spacey": "music-spacey.wav"
+  },
+  "sfx": {
+    "jump": "sfx-jump.wav",
+    "collect": "sfx-collect.wav",
+    "win": "sfx-win.wav",
+    "splash": "sfx-splash.wav",
+    "step": "sfx-step.wav",
+    "place": "sfx-place.wav",
+    "undo": "sfx-undo.wav"
+  }
+}

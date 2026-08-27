@@ -206,6 +206,92 @@ export async function downloadTo(url, destPath) {
   return buf.length;
 }
 
+// -------------------------------------------------------- media asset upload
+
+/**
+ * Uploads one image to Marble in the two steps its API requires: ask for a
+ * signed URL, then push the bytes to it. Returns the media_asset_id used to
+ * reference the image in a multi-image world prompt.
+ */
+export async function uploadImage(filePath) {
+  const fileName = filePath.split("/").pop();
+  const extension = (fileName.split(".").pop() || "jpg").toLowerCase();
+
+  const prepared = await apiPost("/media-assets:prepare_upload", {
+    file_name: fileName,
+    extension,
+    kind: "image",
+  });
+
+  const assetId = prepared?.media_asset?.media_asset_id;
+  const upload = prepared?.upload_info;
+  if (!assetId || !upload?.upload_url) {
+    throw new StudioError(
+      "I had trouble sending your picture to the world machine. Let's try again!",
+      `prepare_upload gave no upload info: ${JSON.stringify(prepared).slice(0, 300)}`,
+      "upload_prepare",
+    );
+  }
+
+  let response;
+  try {
+    response = await fetch(upload.upload_url, {
+      method: upload.upload_method || "PUT",
+      headers: { ...(upload.required_headers || {}) },
+      body: readFileSync(filePath),
+      signal: AbortSignal.timeout(5 * 60_000),
+    });
+  } catch (err) {
+    throw new StudioError(
+      "I had trouble sending your picture to the world machine. Let's try again!",
+      `upload failed for ${fileName}: ${err.message}`,
+      "upload",
+    );
+  }
+  if (!response.ok) {
+    throw new StudioError(
+      "I had trouble sending your picture to the world machine. Let's try again!",
+      `upload failed: HTTP ${response.status} for ${fileName}`,
+      "upload",
+    );
+  }
+  return assetId;
+}
+
+/** Compass direction -> Marble azimuth in degrees (0 is straight ahead). */
+export const AZIMUTH = { front: 0, right: 90, back: 180, left: 270 };
+
+/**
+ * Builds a world from her four directional concept images, each placed at the
+ * compass bearing she described it at, plus the assembled text prompt.
+ */
+export async function startMultiImageGeneration({ images, prompt, displayName, model }) {
+  const multiImagePrompt = images.map(({ azimuth, assetId }) => ({
+    azimuth,
+    content: { source: "media_asset", media_asset_id: assetId },
+  }));
+
+  const op = await apiPost("/worlds:generate", {
+    model,
+    display_name: displayName,
+    world_prompt: {
+      type: "multi-image",
+      multi_image_prompt: multiImagePrompt,
+      text_prompt: prompt,
+      reconstruct_images: true,
+    },
+  });
+  const id = operationId(op);
+  if (!id) {
+    throw new StudioError(
+      "The world machine answered in a way I didn't understand. Let's try again!",
+      `no operation id in multi-image generate response: ${JSON.stringify(op).slice(0, 400)}`,
+      "bad_response",
+    );
+  }
+  return id;
+}
+
 // ------------------------------------------------- expansion capability probe
 
 /**

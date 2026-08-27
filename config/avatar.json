@@ -1,0 +1,14 @@
+{
+  "name": "",
+  "bodyColor": "#ff6ba9",
+  "accentColor": "#ffc93c",
+  "skinColor": "#f6c9a0",
+  "hairColor": "#5b3a29",
+  "hat": "none",
+  "companion": { "animal": "none", "color": "#ffd166", "name": "" },
+  "_comments": {
+    "hat": "none | cap | crown | wizard | bow",
+    "companion.animal": "none | cat | dog | fox | bunny | dragon | bird",
+    "_": "Set during her onboarding. She is the playable character in every game."
+  }
+}

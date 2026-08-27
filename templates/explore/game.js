@@ -13,10 +13,12 @@ const studio = await Studio.create({
     "Walk around with the arrow keys, or the round stick on the left.",
     "Drag anywhere on the picture to look around.",
     "Find all the glowing stars — just walk into one to collect it!",
+    "That's YOU on the screen! Drag to swing the camera around you.",
     "Collect every star to win.",
   ],
   mode: "walk",
   worldBounds: 24,
+  startPosition: [0, 0, 0],
 });
 
 const treasures = [];
@@ -58,6 +60,7 @@ studio.onUpdate((dt) => {
       star.userData.collected = true;
       star.visible = false;
       collected++;
+      studio.audio.play("collect");
       studio.setScore(collected, TREASURE_COUNT);
       studio.setGoal(
         collected === TREASURE_COUNT

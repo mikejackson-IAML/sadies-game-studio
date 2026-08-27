@@ -47,6 +47,7 @@ const studio = await Studio.create({
     "Walk with the arrow keys, or the round stick on the left.",
     "Drag anywhere on the picture to look around.",
     "The walls are see-through so you can peek at your world.",
+    "That's YOU on the screen! Drag to swing the camera around you.",
     "Find the big golden door to win!",
   ],
   mode: "walk",

@@ -43,7 +43,7 @@ for (const game of GAMES) {
     await page.goto(`http://localhost:${PORT}/templates/${game.dir}/`, { waitUntil: "load" });
 
     // The loading overlay only hides once the splat world has fully parsed.
-    await page.waitForSelector(".overlay.loading[hidden]", { timeout: 90_000 });
+    await page.waitForSelector(".overlay.loading[hidden]", { state: "attached", timeout: 90_000 });
 
     const splats = await page.evaluate(() => {
       const canvas = document.querySelector("canvas");
@@ -53,6 +53,20 @@ for (const game of GAMES) {
     if (!splats.hasCanvas) problems.push("no canvas");
     if (!splats.hasGL) problems.push("no WebGL context");
     if (splats.width === 0) problems.push("canvas has zero width");
+
+    // The overlays must be genuinely gone, not merely marked hidden: a stray
+    // `display` rule can keep them painted over the game.
+    const overlays = await page.evaluate(() => {
+      const visible = (sel) => {
+        const node = document.querySelector(sel);
+        if (!node) return false;
+        const style = getComputedStyle(node);
+        return style.display !== "none" && style.visibility !== "hidden" && node.getBoundingClientRect().width > 0;
+      };
+      return { loading: visible(".overlay.loading"), win: visible(".overlay.win") };
+    });
+    if (overlays.loading) problems.push("loading overlay is still covering the game");
+    if (overlays.win) problems.push("win overlay is showing before the game is won");
 
     // Confirm real geometry is on screen rather than a flat background colour.
     // Read it from a real screenshot: the WebGL drawing buffer is cleared after
@@ -79,6 +93,11 @@ for (const game of GAMES) {
     await page.keyboard.up("ArrowUp");
     if (!before) problems.push("could not read player position");
     else if (moved < 1) problems.push(`player barely moved (${moved.toFixed(2)}m in 15s)`);
+
+    // Her character must actually be in the scene, and sound must have loaded.
+    const debug = await page.evaluate(() => window.__studioDebug?.());
+    if (!debug?.hasAvatar) problems.push("her avatar is not in the scene");
+    if (!debug?.audioReady) problems.push("audio failed to load");
 
     if (errors.length) problems.push(`console errors: ${errors.slice(0, 3).join(" | ")}`);
   } catch (err) {
