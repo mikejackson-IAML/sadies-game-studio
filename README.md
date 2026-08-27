@@ -15,6 +15,32 @@ For how the system works internally, see **`SPEC.md`**.
 
 ## Setup checklist
 
+### 0. Network policy — check this first
+
+```bash
+npm run preflight
+```
+
+Managed environments (including Claude Code on the web) allow-list outbound
+hosts. **A blocked host looks exactly like a bad API key from inside the app**,
+so check this before touching credentials.
+
+| Host | Needed for |
+| --- | --- |
+| `api.worldlabs.ai` | **Required.** Generating worlds. |
+| `cdn.marble.worldlabs.ai` | **Required.** Downloading the world files Marble produces. |
+| `github.com` | **Required.** Saving and publishing her games. |
+| `generativelanguage.googleapis.com` | Optional — Gemini concept images. |
+| `platform.higgsfield.ai` | Optional — Higgsfield character art. |
+
+Both World Labs hosts matter: with the API allowed but the CDN blocked, a world
+generates successfully and then fails to download — the worst kind of failure,
+because it costs a day of her allowance and produces nothing.
+
+**Run this on the environment Sadie uses, not only on your laptop.** They can
+have different policies. In the container this repo was built in, both required
+World Labs hosts were blocked.
+
 ### 1. Keys
 
 Both are read from the environment only. Neither is ever committed, logged, or
@@ -197,6 +223,26 @@ credits move faster than expected.
 
 ---
 
+## Self-correcting API guesses
+
+The Marble surface was reconstructed from client code, so three values are
+inferred rather than documented. Instead of failing on a wrong guess, the client
+walks alternatives and remembers what worked, in `logs/api-capabilities.json`:
+
+- **Model id** — tries the configured model, then `marble-1.1-plus`,
+  `marble-1.1`, `Marble 0.1-plus`, `Marble 0.1`. Refused ids are remembered and
+  skipped; the winner is tried first from then on.
+- **Multi-image `text_prompt`** — sent alongside the four images first (better
+  worlds if accepted), dropped automatically if refused.
+- Retries happen **only** on 400/404/422. Auth, credits and rate limits are
+  never retried — a payload rejection creates no operation and spends nothing,
+  so walking candidates is free; retrying a 402 just wastes time.
+
+Every refused request is written verbatim (redacted) to `logs/errors.log`, so
+when something is rejected you have the exact payload rather than a guess.
+`npm run smoke -- --generate` prints what the API actually accepted, and
+suggests pinning `marbleModel` once a winner is known.
+
 ## World Labs API — what was verified
 
 The official docs at `docs.worldlabs.ai` were unreachable from the build
@@ -295,6 +341,7 @@ npm run ship -- --game explore --title "Star Hunt"
 npm run save           # what "save my game" runs
 npm run backup         # mirror worlds/ + verify checksums
 npm run lfs:setup      # one-time Git LFS setup
+npm run preflight      # can this machine reach the services at all?
 npm run smoke          # verify the World Labs key end to end
 npm run smoke:higgsfield   # verify the Higgsfield key end to end
 npm run privacy:setup  # build the privacy word list, interactively

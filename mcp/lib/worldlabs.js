@@ -44,33 +44,34 @@ async function toStudioError(response) {
     detail = `${response.status} ${response.statusText}`;
   }
   const admin = `World Labs API ${response.status}: ${detail}`;
+  const withStatus = (err) => Object.assign(err, { httpStatus: response.status });
 
   if (response.status === 401 || response.status === 403) {
-    return new StudioError(
+    return withStatus(new StudioError(
       "The world machine didn't recognise my magic key. Ask Dad to check it — this isn't anything you did!",
       admin,
       "auth",
-    );
+    ));
   }
   if (response.status === 402) {
-    return new StudioError(
+    return withStatus(new StudioError(
       "We're out of world-making sparkles for now! Ask Dad to top them up. Everything you've already made is safe.",
       `${admin} — NOTE: platform.worldlabs.ai API credits are separate from marble.worldlabs.ai web credits`,
       "credits",
-    );
+    ));
   }
   if (response.status === 429) {
-    return new StudioError(
+    return withStatus(new StudioError(
       "The world machine is really busy right now! Let's wait a few minutes and try again.",
       admin,
       "rate_limit",
-    );
+    ));
   }
-  return new StudioError(
+  return withStatus(new StudioError(
     "The world machine had a hiccup and couldn't build your world. Nothing is lost — we can try again!",
     admin,
     "api_error",
-  );
+  ));
 }
 
 async function apiPost(path, body) {
@@ -90,7 +91,13 @@ async function apiPost(path, body) {
       "network",
     );
   }
-  if (!response.ok) throw await toStudioError(response);
+  if (!response.ok) {
+    const err = await toStudioError(response);
+    err.requestPath = path;
+    err.requestBody = body;
+    logRejectedRequest(path, body, err);
+    throw err;
+  }
   return response.json();
 }
 
@@ -133,14 +140,117 @@ export function extractAssets(world, quality = "500k") {
   };
 }
 
+// --------------------------------------------------- capability cache + logs
+
+function readCaps() {
+  try {
+    return JSON.parse(readFileSync(CAPS_FILE, "utf8"));
+  } catch {
+    return {};
+  }
+}
+
+function writeCaps(patch) {
+  const caps = { ...readCaps(), ...patch, updatedAtUtc: new Date().toISOString() };
+  try {
+    mkdirSync(join(CAPS_FILE, ".."), { recursive: true });
+    writeFileSync(CAPS_FILE, `${JSON.stringify(caps, null, 2)}\n`);
+  } catch {
+    // The cache is an optimisation, never a requirement.
+  }
+  return caps;
+}
+
+/**
+ * Writes the exact request the API refused into the admin log.
+ *
+ * The Marble API surface here was reconstructed from client code rather than
+ * official docs, so when something is rejected the single most useful thing is
+ * the payload that was sent. Redacted, and Dad-only.
+ */
+function logRejectedRequest(path, body, err) {
+  try {
+    mkdirSync(join(CAPS_FILE, ".."), { recursive: true });
+    const entry = [
+      `[${new Date().toISOString()}] REJECTED ${err.httpStatus} POST ${path}`,
+      `  reason: ${err.adminDetail}`,
+      `  request: ${redact(JSON.stringify(body))}`,
+      "",
+    ].join("\n");
+    writeFileSync(join(CAPS_FILE, "..", "errors.log"), entry, { flag: "a" });
+  } catch {
+    // Logging must never break a generation.
+  }
+}
+
+// ---------------------------------------------------- model + payload probing
+
+/**
+ * Model ids seen in the wild, newest first. The id is the likeliest thing to be
+ * wrong, since it is the one value that changes as Marble ships new versions.
+ */
+const MODEL_CANDIDATES = ["marble-1.1-plus", "marble-1.1", "Marble 0.1-plus", "Marble 0.1"];
+
+/** Only these mean "your payload is wrong" — never auth, billing or rate limits. */
+const PAYLOAD_REJECTIONS = new Set([400, 404, 422]);
+
+function orderedModels(preferred) {
+  const caps = readCaps();
+  const rejected = new Set(caps.rejectedModels || []);
+  const ordered = [...new Set([caps.workingModel, preferred, ...MODEL_CANDIDATES].filter(Boolean))];
+  const viable = ordered.filter((m) => !rejected.has(m));
+  return viable.length ? viable : ordered;
+}
+
+function rememberRejectedModel(model) {
+  const caps = readCaps();
+  const rejected = new Set(caps.rejectedModels || []);
+  rejected.add(model);
+  writeCaps({ rejectedModels: [...rejected] });
+}
+
+/**
+ * Posts a generate request, walking the candidate variants until one is
+ * accepted, and remembering what worked.
+ *
+ * Retries are safe: a payload rejection means no operation was created and no
+ * credits moved. Anything else — auth, credits, rate limit, network — is
+ * rethrown immediately rather than retried.
+ */
+async function generateWithFallbacks(variants, { onNote } = {}) {
+  let lastError = null;
+
+  for (const variant of variants) {
+    try {
+      const op = await apiPost("/worlds:generate", variant.body);
+      if (variant.remember) writeCaps(variant.remember);
+      return op;
+    } catch (err) {
+      const retryable = err instanceof StudioError && PAYLOAD_REJECTIONS.has(err.httpStatus);
+      if (!retryable) throw err;
+      lastError = err;
+      if (variant.onReject) variant.onReject();
+      onNote?.(`variant rejected (${err.httpStatus}): ${variant.note}`);
+    }
+  }
+  throw lastError;
+}
+
 // ------------------------------------------------------------------ generate
 
-export async function startGeneration({ prompt, displayName, model }) {
-  const op = await apiPost("/worlds:generate", {
-    model,
-    display_name: displayName,
-    world_prompt: { type: "text", text_prompt: prompt },
-  });
+export async function startGeneration({ prompt, displayName, model, onNote }) {
+  const variants = orderedModels(model).map((candidate) => ({
+    note: `model=${candidate}`,
+    body: {
+      model: candidate,
+      display_name: displayName,
+      world_prompt: { type: "text", text_prompt: prompt },
+    },
+    remember: { workingModel: candidate },
+    onReject: () => rememberRejectedModel(candidate),
+  }));
+
+  const op = await generateWithFallbacks(variants, { onNote });
   const id = operationId(op);
   if (!id) {
     throw new StudioError(
@@ -265,22 +375,36 @@ export const AZIMUTH = { front: 0, right: 90, back: 180, left: 270 };
  * Builds a world from her four directional concept images, each placed at the
  * compass bearing she described it at, plus the assembled text prompt.
  */
-export async function startMultiImageGeneration({ images, prompt, displayName, model }) {
+export async function startMultiImageGeneration({ images, prompt, displayName, model, onNote }) {
   const multiImagePrompt = images.map(({ azimuth, assetId }) => ({
     azimuth,
     content: { source: "media_asset", media_asset_id: assetId },
   }));
 
-  const op = await apiPost("/worlds:generate", {
-    model,
-    display_name: displayName,
-    world_prompt: {
-      type: "multi-image",
-      multi_image_prompt: multiImagePrompt,
-      text_prompt: prompt,
-      reconstruct_images: true,
-    },
-  });
+  // Reference clients send multi_image_prompt with no text_prompt. Carrying her
+  // written description too should work and is better if it does, so try it
+  // first and fall back to the shape known to be accepted.
+  const caps = readCaps();
+  const shapes = caps.multiImageTextPrompt === false ? [false] : [true, false];
+
+  const variants = [];
+  for (const withText of shapes) {
+    for (const candidate of orderedModels(model)) {
+      const worldPrompt = {
+        type: "multi-image",
+        multi_image_prompt: multiImagePrompt,
+        reconstruct_images: true,
+      };
+      if (withText) worldPrompt.text_prompt = prompt;
+      variants.push({
+        note: `model=${candidate} text_prompt=${withText}`,
+        body: { model: candidate, display_name: displayName, world_prompt: worldPrompt },
+        remember: { workingModel: candidate, multiImageTextPrompt: withText },
+      });
+    }
+  }
+
+  const op = await generateWithFallbacks(variants, { onNote });
   const id = operationId(op);
   if (!id) {
     throw new StudioError(
@@ -304,16 +428,10 @@ export async function startMultiImageGeneration({ images, prompt, displayName, m
  * upgrades itself without a code change; until then we fall back to a remix.
  */
 export async function expansionSupported() {
-  try {
-    if (existsSync(CAPS_FILE)) {
-      const cached = JSON.parse(readFileSync(CAPS_FILE, "utf8"));
-      const age = Date.now() - new Date(cached.checkedAtUtc).getTime();
-      if (age < 7 * 86400_000 && typeof cached.expandEndpoint === "boolean") {
-        return cached.expandEndpoint;
-      }
-    }
-  } catch {
-    // Fall through and re-probe.
+  const cached = readCaps();
+  if (typeof cached.expandEndpoint === "boolean" && cached.expandCheckedAtUtc) {
+    const age = Date.now() - new Date(cached.expandCheckedAtUtc).getTime();
+    if (age < 7 * 86400_000) return cached.expandEndpoint;
   }
 
   let supported = false;
@@ -331,15 +449,7 @@ export async function expansionSupported() {
     supported = false;
   }
 
-  try {
-    mkdirSync(join(CAPS_FILE, ".."), { recursive: true });
-    writeFileSync(
-      CAPS_FILE,
-      `${JSON.stringify({ checkedAtUtc: new Date().toISOString(), expandEndpoint: supported }, null, 2)}\n`,
-    );
-  } catch {
-    // Cache is an optimisation, not a requirement.
-  }
+  writeCaps({ expandEndpoint: supported, expandCheckedAtUtc: new Date().toISOString() });
   return supported;
 }
 

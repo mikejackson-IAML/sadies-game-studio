@@ -20,7 +20,8 @@
     "lfs:setup": "node scripts/setup-lfs.mjs",
     "privacy:setup": "node scripts/privacy-setup.mjs",
     "character:setup": "node scripts/character-setup.mjs",
-    "smoke:higgsfield": "node scripts/smoke-higgsfield.mjs"
+    "smoke:higgsfield": "node scripts/smoke-higgsfield.mjs",
+    "preflight": "node scripts/preflight.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0"

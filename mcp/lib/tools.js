@@ -388,7 +388,7 @@ export async function makeWorld(args) {
           `Additionally, this place now also includes: ${args.description}.`,
           "Keep the original setting, mood, colours and lighting recognisably the same, and make the world larger to fit the new area.",
         ].join("\n");
-        opId = await startGeneration({ prompt, displayName, model: config.marbleModel });
+        opId = await startGeneration({ prompt, displayName, model: config.marbleModel, onNote: adminLog });
       }
       operationStarted = true;
     } else if (directionalFiles.length === DIRECTIONS.length) {
@@ -398,10 +398,12 @@ export async function makeWorld(args) {
       for (const { direction, file } of directionalFiles) {
         images.push({ azimuth: AZIMUTH[direction], assetId: await uploadImage(file) });
       }
-      opId = await startMultiImageGeneration({ images, prompt, displayName, model: config.marbleModel });
+      opId = await startMultiImageGeneration({
+        images, prompt, displayName, model: config.marbleModel, onNote: adminLog,
+      });
       operationStarted = true;
     } else {
-      opId = await startGeneration({ prompt, displayName, model: config.marbleModel });
+      opId = await startGeneration({ prompt, displayName, model: config.marbleModel, onNote: adminLog });
       operationStarted = true;
     }
 

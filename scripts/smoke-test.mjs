@@ -12,6 +12,19 @@
 import { loadConfig, getApiKey } from "../mcp/lib/config.js";
 import { expansionSupported } from "../mcp/lib/worldlabs.js";
 import { checkAllowance } from "../mcp/lib/limit.js";
+import { readFileSync, existsSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const CAPS = join(ROOT, "logs", "api-capabilities.json");
+const readCaps = () => {
+  try {
+    return JSON.parse(readFileSync(CAPS, "utf8"));
+  } catch {
+    return {};
+  }
+};
 
 const generate = process.argv.includes("--generate");
 const config = loadConfig();
@@ -42,7 +55,9 @@ const response = await fetch("https://api.worldlabs.ai/marble/v1/worlds:list", {
 if (!response.ok) {
   console.error(`\n  FAIL  The API rejected the key (HTTP ${response.status} ${response.statusText || ""}).`);
   if (response.status === 401 || response.status === 403) {
-    console.error("        The key is wrong or revoked. Check https://platform.worldlabs.ai/");
+    console.error("        Either the key is wrong/revoked, OR api.worldlabs.ai is blocked by an");
+    console.error("        outbound network policy — those look identical from here.");
+    console.error("        Run `npm run preflight` to tell them apart before touching the key.");
   } else if (response.status === 402) {
     console.error("        The key works but has no credits. NOTE: API Platform credits are");
     console.error("        SEPARATE from marble.worldlabs.ai web-app credits.");
@@ -58,6 +73,11 @@ console.log(
     ? "  ok    A world-expansion endpoint EXISTS — 'add to my world' will use it"
     : "  ok    No expansion endpoint (expected) — 'add to my world' uses the remix path",
 );
+
+const caps = readCaps();
+if (caps.workingModel) {
+  console.log(`  ok    Known-good model from a previous run: ${caps.workingModel}`);
+}
 
 if (!generate) {
   console.log("\n  All checks passed. No credits were spent.");
@@ -76,5 +96,30 @@ const result = await makeWorld({
 });
 const text = result.content[0].text;
 console.log(text.split("\n").slice(0, 4).join("\n"));
-console.log(text.startsWith("SUCCESS") ? "\n  Generation works end to end.\n" : "\n  Generation did not succeed — see above.\n");
+const after = readCaps();
+if (text.startsWith("SUCCESS")) {
+  console.log("\n  Generation works end to end.");
+  console.log("");
+  console.log("  What the API actually accepted (this is the useful part — the model id and");
+  console.log("  payload shape were inferred from client code, not official docs):");
+  console.log(`    model:              ${after.workingModel ?? "(unrecorded)"}`);
+  if (after.multiImageTextPrompt !== undefined) {
+    console.log(`    multi-image text:   ${after.multiImageTextPrompt ? "accepted" : "REJECTED — dropped automatically"}`);
+  }
+  if (after.rejectedModels?.length) {
+    console.log(`    models refused:     ${after.rejectedModels.join(", ")}`);
+    console.log("");
+    console.log(`  Consider setting "marbleModel": "${after.workingModel}" in config/studio.json`);
+    console.log("  so future runs skip the refused ones entirely.");
+  }
+  console.log("");
+  console.log("  Cached in logs/api-capabilities.json. Delete it to re-probe.");
+  console.log("");
+} else {
+  console.log("\n  Generation did not succeed — see above.");
+  if (existsSync(join(ROOT, "logs", "errors.log"))) {
+    console.log("  The exact request the API refused is in logs/errors.log.");
+  }
+  console.log("");
+}
 process.exit(text.startsWith("SUCCESS") ? 0 : 1);

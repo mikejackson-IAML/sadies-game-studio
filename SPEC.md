@@ -132,6 +132,23 @@ its `required_headers` — and referenced by `media_asset_id`:
 Azimuth is degrees clockwise from straight ahead: `front 0, right 90, back 180,
 left 270` (`AZIMUTH` in `mcp/lib/worldlabs.js`).
 
+**Self-correcting guesses.** Model id and multi-image payload shape were
+inferred, so `generateWithFallbacks()` walks candidates (`MODEL_CANDIDATES`,
+with/without `text_prompt`) and caches the winner in
+`logs/api-capabilities.json` (`workingModel`, `rejectedModels`,
+`multiImageTextPrompt`). Retries fire **only** on 400/404/422 — a payload
+rejection creates no operation and spends nothing. 401/402/429 are rethrown
+immediately. `logRejectedRequest()` writes every refused payload, redacted, to
+`logs/errors.log`. Covered by `fallback.test.js`.
+
+**Network policy.** `scripts/preflight.mjs` probes every required and optional
+host. A policy proxy that answers a blocked CONNECT with its own HTTP 403 is
+indistinguishable from a service returning 403, so preflight asks the local
+agent proxy's status endpoint which hosts it refused, and falls back to an
+all-403s-but-control-is-200 heuristic where no such endpoint exists. Both
+`api.worldlabs.ai` and `cdn.marble.worldlabs.ai` are required: API-allowed but
+CDN-blocked spends a day's allowance and produces nothing.
+
 **Expansion.** There is no public endpoint that extends an existing `world_id`.
 Marble's "expand" is an interactive web-app feature, and `marble-1.1-plus`
 expands automatically within one generation. So:
@@ -318,6 +335,9 @@ GitHub's free LFS tier is 1 GB — at roughly one world a day, plan for a data p
 - `generation.test.js` — full simple-path flow against a mocked Marble:
   success, second-world refusal, tomorrow's-world, no-leak assertions,
   pre-flight refund, remix preserving the original.
+- `fallback.test.js` — model-id walking, caching the winner, dropping
+  `text_prompt` when refused, never retrying 401/402, and the refused payload
+  reaching the admin log.
 - `higgsfield.test.js` — Soul ID request shapes against a mock: both secrets as
   headers never in the URL, base64-first reference creation, the refusal to
   publish photos, `params`-nested Soul payloads, and kid-safe handling of
