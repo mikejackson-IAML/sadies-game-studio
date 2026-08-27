@@ -1,0 +1,16 @@
+{
+  "studioName": "",
+  "dailyWorldLimit": 1,
+  "timezone": "America/Chicago",
+  "marbleModel": "marble-1.1-plus",
+  "splatQuality": "500k",
+  "requireShipApproval": false,
+  "_comments": {
+    "studioName": "Set during her first-run onboarding. Shown as the arcade title.",
+    "dailyWorldLimit": "Hard cap on Marble world generations per day. Enforced in mcp/lib/limit.js, not just instructions.",
+    "timezone": "IANA timezone the daily limit resets at midnight in. Handles DST automatically.",
+    "marbleModel": "marble-1.1 (1500 credits, fixed) or marble-1.1-plus (1500 + 300 per dynamic cube, max 5).",
+    "splatQuality": "Which Gaussian splat level-of-detail to download: 100k, 500k, or full_res. 500k is the phone-friendly default.",
+    "requireShipApproval": "false = /ship publishes immediately. true = /ship stages the game and waits for Dad to approve."
+  }
+}

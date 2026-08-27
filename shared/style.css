@@ -1,0 +1,239 @@
+/* Her Game Studio — game chrome. Big, bright, friendly. Built for thumbs. */
+:root {
+  --ink: #23214a;
+  --sunshine: #ffc93c;
+  --bubblegum: #ff6ba9;
+  --grape: #8a63d2;
+  --mint: #3ddc97;
+  --sky: #4fb8ff;
+  --paper: #fffdf7;
+  --shadow: 0 6px 0 rgba(35, 33, 74, 0.25);
+  font-family: "Baloo 2", "Comic Sans MS", "Trebuchet MS", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #8fd3ff;
+  color: var(--ink);
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
+.studio-root { position: fixed; inset: 0; }
+.canvas-holder canvas { display: block; width: 100%; height: 100%; }
+
+/* ------------------------------------------------------------------- HUD */
+.hud {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 84px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+}
+.hud-title {
+  align-self: flex-start;
+  background: var(--paper);
+  border: 4px solid var(--ink);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 6px 16px;
+  font-size: clamp(18px, 4.5vw, 28px);
+  font-weight: 800;
+}
+.hud-goal {
+  align-self: flex-start;
+  background: var(--sunshine);
+  border: 4px solid var(--ink);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 6px 16px;
+  font-size: clamp(14px, 3.6vw, 20px);
+  font-weight: 700;
+  max-width: 100%;
+}
+.hud-goal:empty { display: none; }
+.hud-score-wrap {
+  align-self: flex-start;
+  background: var(--mint);
+  border: 4px solid var(--ink);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 4px 16px;
+  font-size: clamp(18px, 4vw, 24px);
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* --------------------------------------------------------------- buttons */
+.big-btn {
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--ink);
+  background: var(--sunshine);
+  border: 4px solid var(--ink);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  padding: 12px 22px;
+  cursor: pointer;
+  transition: transform 0.08s ease;
+}
+.big-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(35, 33, 74, 0.25); }
+
+.help-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  padding: 0;
+  font-size: 30px;
+  background: var(--bubblegum);
+  color: var(--paper);
+}
+
+.jump-btn {
+  position: absolute;
+  right: 22px;
+  bottom: 30px;
+  width: 108px;
+  height: 108px;
+  border-radius: 50%;
+  padding: 0;
+  font-size: 22px;
+  background: var(--bubblegum);
+  color: var(--paper);
+}
+
+/* --------------------------------------------------------- thumb-stick */
+.stick {
+  position: absolute;
+  left: 22px;
+  bottom: 30px;
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  border: 5px dashed rgba(35, 33, 74, 0.45);
+  background: rgba(255, 253, 247, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.stick.active { background: rgba(255, 253, 247, 0.6); }
+.stick-nub {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 5px solid var(--ink);
+  box-shadow: var(--shadow);
+  pointer-events: none;
+}
+
+/* -------------------------------------------------------------- panels */
+.panel {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(440px, 88vw);
+  max-height: 78vh;
+  overflow-y: auto;
+  background: var(--paper);
+  border: 5px solid var(--ink);
+  border-radius: 26px;
+  box-shadow: 0 12px 0 rgba(35, 33, 74, 0.25);
+  padding: 22px 26px 26px;
+  text-align: center;
+}
+.panel h2 { margin: 0 0 12px; font-size: 26px; }
+.panel ul { text-align: left; font-size: 17px; line-height: 1.55; padding-left: 22px; margin: 0 0 18px; }
+
+/* ------------------------------------------------------------ overlays */
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+  padding: 24px;
+  background: linear-gradient(160deg, #8fd3ff, #c9b6ff);
+}
+.overlay h1 { font-size: clamp(32px, 9vw, 64px); margin: 0; }
+.overlay h2 { font-size: clamp(22px, 6vw, 34px); margin: 0; }
+.overlay p { font-size: 18px; margin: 0; max-width: 30ch; }
+.win-emoji { font-size: clamp(56px, 16vw, 110px); animation: pop 0.9s ease infinite alternate; }
+.win-msg { font-weight: 700; }
+@keyframes pop { from { transform: scale(1) rotate(-6deg); } to { transform: scale(1.12) rotate(6deg); } }
+
+.spinner {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  border: 8px solid rgba(35, 33, 74, 0.2);
+  border-top-color: var(--ink);
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.bar {
+  width: min(280px, 70vw);
+  height: 20px;
+  border: 4px solid var(--ink);
+  border-radius: 12px;
+  background: var(--paper);
+  overflow: hidden;
+}
+.bar-fill { height: 100%; width: 0%; background: var(--mint); transition: width 0.2s ease; }
+
+.studio-stamp {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(35, 33, 74, 0.55);
+  pointer-events: none;
+}
+
+/* On a real keyboard the thumb-stick is just clutter. */
+@media (hover: hover) and (pointer: fine) {
+  .stick, .jump-btn { opacity: 0.35; }
+  .stick:hover, .jump-btn:hover { opacity: 1; }
+}
+
+/* ------------------------------------------------- sandbox-only controls */
+.palette {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  background: rgba(255, 253, 247, 0.75);
+  border: 4px solid var(--ink);
+  border-radius: 22px;
+  padding: 8px;
+}
+.piece-btn { width: 58px; height: 58px; padding: 0; font-size: 26px; background: var(--paper); }
+.piece-btn.chosen { background: var(--mint); transform: translateY(-4px); }
+.place-btn { position: absolute; right: 22px; bottom: 152px; background: var(--mint); }
+.undo-btn { position: absolute; right: 22px; bottom: 92px; background: var(--paper); font-size: 16px; padding: 8px 16px; }

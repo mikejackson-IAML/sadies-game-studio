@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "worlds": {
+      "command": "node",
+      "args": ["mcp/server.js"],
+      "env": {
+        "WORLDLABS_API_KEY": "${WORLDLABS_API_KEY}"
+      }
+    }
+  }
+}

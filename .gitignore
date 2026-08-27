@@ -1,0 +1,12 @@
+# Secrets — the World Labs API key lives here and must never be committed.
+.env
+.env.*
+!.env.example
+
+node_modules/
+.DS_Store
+*.log
+
+# Playwright / test scratch
+test-results/
+.playwright/

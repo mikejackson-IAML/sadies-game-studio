@@ -1,0 +1,26 @@
+{
+  "name": "her-game-studio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A kid's game-building studio: Marble 3D worlds turned into playable web games.",
+  "scripts": {
+    "world:placeholder": "node scripts/make-placeholder-world.mjs",
+    "arcade": "node scripts/build-arcade.mjs",
+    "ship": "node scripts/ship.mjs",
+    "save": "node scripts/save.mjs",
+    "serve": "node scripts/serve.mjs",
+    "smoke": "node scripts/smoke-test.mjs",
+    "test": "node --test mcp/test/*.test.js",
+    "test:games": "node scripts/test-games.mjs",
+    "mcp": "node mcp/server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@sparkjsdev/spark": "2.1.0",
+    "playwright": "^1.62.1",
+    "three": "0.185.1"
+  }
+}
