@@ -5,11 +5,13 @@
 # LFS. Until git-lfs is installed these patterns do nothing and files are stored
 # as ordinary blobs (git does not error) — `git lfs migrate import` converts any
 # that were committed early.
+#
+# .ply is deliberately NOT tracked: the only .ply is the small practice world,
+# and it must stay a plain blob so the four games are playable even somewhere
+# git-lfs is missing. Marble's real worlds are .spz and do go through LFS.
 worlds/**/*.spz  filter=lfs diff=lfs merge=lfs -text
-worlds/**/*.ply  filter=lfs diff=lfs merge=lfs -text
 worlds/**/*.glb  filter=lfs diff=lfs merge=lfs -text
 docs/worlds/**/*.spz filter=lfs diff=lfs merge=lfs -text
-docs/worlds/**/*.ply filter=lfs diff=lfs merge=lfs -text
 
 # Keep line endings sane for everything else.
 *.js   text eol=lf

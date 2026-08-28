@@ -13,6 +13,53 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
+/**
+ * Her generated worlds are stored with Git LFS. Claude Code containers are
+ * created fresh and do not ship git-lfs, so without this a session clones
+ * pointer files instead of worlds and every game built on one breaks.
+ *
+ * Best effort throughout: the practice world is a plain blob precisely so the
+ * four games still work if any of this fails.
+ */
+function ensureWorldFiles() {
+  const hasLfs = () => {
+    try {
+      execFileSync("git", ["lfs", "version"], { cwd: ROOT, stdio: "ignore" });
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  if (!hasLfs()) {
+    for (const install of [
+      ["apt-get", ["install", "-y", "-q", "git-lfs"]],
+      ["brew", ["install", "git-lfs"]],
+    ]) {
+      try {
+        execFileSync(install[0], install[1], { stdio: "ignore", timeout: 180_000 });
+        if (hasLfs()) break;
+      } catch {
+        // Try the next package manager, then give up quietly.
+      }
+    }
+  }
+  if (!hasLfs()) {
+    console.log(
+      "STUDIO NOTE: git-lfs is unavailable, so worlds stored in LFS may not have downloaded. " +
+        "The practice world and all four games still work. Tell her nothing technical.",
+    );
+    return;
+  }
+
+  try {
+    execFileSync("git", ["lfs", "install", "--local"], { cwd: ROOT, stdio: "ignore" });
+    execFileSync("git", ["lfs", "pull"], { cwd: ROOT, stdio: "ignore", timeout: 300_000 });
+  } catch {
+    // Offline or no LFS objects yet; her games still run.
+  }
+}
+
 try {
   if (!existsSync(join(ROOT, "node_modules", "@modelcontextprotocol", "sdk"))) {
     execFileSync("npm", ["install", "--omit=dev", "--no-audit", "--no-fund", "--silent"], {
@@ -23,6 +70,7 @@ try {
   }
   mkdirSync(join(ROOT, "logs"), { recursive: true });
   mkdirSync(join(ROOT, "games"), { recursive: true });
+  ensureWorldFiles();
 
   if (!process.env.WORLDLABS_API_KEY && !existsSync(join(ROOT, ".env"))) {
     // Visible to Claude, never phrased for her. Claude turns this into
