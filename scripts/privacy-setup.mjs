@@ -108,3 +108,14 @@ if (tooShort.length) {
   console.log(`  Skipped ${tooShort.length} entr${tooShort.length === 1 ? "y" : "ies"} under 3 characters (too many false matches).`);
 }
 console.log("  Check it works:  npm run privacy\n");
+
+if (unique.length) {
+  console.log("  ─────────────────────────────────────────────────────────────────");
+  console.log("  This file is gitignored, so it does NOT reach Sadie's Claude Code");
+  console.log("  environment — where /ship actually runs. Add this there too, as an");
+  console.log("  environment variable, or the scan is off in the place that matters:");
+  console.log("");
+  console.log("    Name:   STUDIO_FORBIDDEN_WORDS");
+  console.log(`    Value:  ${unique.join(",")}`);
+  console.log("  ─────────────────────────────────────────────────────────────────\n");
+}

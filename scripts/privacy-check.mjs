@@ -32,18 +32,43 @@ function walk(dir, files = []) {
   return files;
 }
 
+/**
+ * The forbidden-word list, from two places that are merged:
+ *
+ *  - config/privacy.local.json — gitignored, for a local checkout.
+ *  - STUDIO_FORBIDDEN_WORDS    — comma-separated, for Claude Code sessions.
+ *
+ * The environment variable matters more than it looks: the file is gitignored
+ * (correctly — these are a child's real details and the repo is public), so it
+ * does not exist in the container where she actually runs /ship. Without the
+ * env var the scan would be silently off in the one place it needs to run.
+ */
 function loadForbidden() {
-  const local = join(ROOT, "config", "privacy.local.json");
-  if (!existsSync(local)) return { words: [], configured: false };
-  try {
-    const data = JSON.parse(readFileSync(local, "utf8"));
-    const words = (data.forbidden || [])
+  const clean = (list) =>
+    list
       .map((w) => String(w).trim())
       .filter((w) => w.length >= 3 && !w.startsWith("Put"));
-    return { words, configured: true };
-  } catch {
-    return { words: [], configured: false };
+
+  const words = new Set();
+  let configured = false;
+
+  const fromEnv = process.env.STUDIO_FORBIDDEN_WORDS;
+  if (fromEnv && fromEnv.trim()) {
+    for (const w of clean(fromEnv.split(","))) words.add(w);
+    configured = true;
   }
+
+  const local = join(ROOT, "config", "privacy.local.json");
+  if (existsSync(local)) {
+    try {
+      const data = JSON.parse(readFileSync(local, "utf8"));
+      for (const w of clean(data.forbidden || [])) words.add(w);
+      configured = true;
+    } catch {
+      // A corrupt file must not silently disable whatever the env provided.
+    }
+  }
+  return { words: [...words], configured };
 }
 
 export function runPrivacyCheck({ quiet = false } = {}) {
@@ -71,9 +96,10 @@ export function runPrivacyCheck({ quiet = false } = {}) {
   if (!quiet) {
     if (!configured) {
       console.log(
-        "  privacy: no config/privacy.local.json — text scanning is OFF.\n" +
-          "           Copy config/privacy.example.json to config/privacy.local.json and fill it in.\n" +
-          "           (Image metadata is still checked and stripped.)",
+        "  privacy: NO WORD LIST — text scanning is OFF.\n" +
+          "           Locally:  npm run privacy:setup\n" +
+          "           In a Claude Code session: set STUDIO_FORBIDDEN_WORDS on the environment.\n" +
+          "           (Image metadata is still checked and stripped either way.)",
       );
     } else {
       console.log(`  privacy: scanned ${files.length} deployed file(s) against ${words.length} forbidden word(s)`);
